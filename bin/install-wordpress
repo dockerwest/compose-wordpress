@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import subprocess
+from environment import Environment
+
+currentpath = os.getcwd()
+composepath = os.path.abspath(os.path.dirname(sys.argv[0]) + '/../')
+
+env = Environment(composepath + '/.env')
+
+cmd = [os.path.dirname(sys.argv[0]) + '/create_db', 'wordpress']
+p = subprocess.Popen(cmd)
+try:
+    p.wait()
+except KeyboardInterrupt:
+    try:
+        p.terminate()
+    except OSError:
+        pass
+    p.wait()
+
+cmd = [os.path.dirname(sys.argv[0]) + '/wp', 'core', 'download']
+p = subprocess.Popen(cmd)
+try:
+    p.wait()
+except KeyboardInterrupt:
+    try:
+        p.terminate()
+    except OSError:
+        pass
+    p.wait()
+
+cmd = [
+    os.path.dirname(sys.argv[0]) + '/wp', 'config', 'create',
+    '--dbname=wordpress', '--dbhost=mysql',
+    '--dbuser=root', '--dbpass=' + env.get('MYSQL_ROOT_PASSWORD'),
+    '--dbcharset=utf8mb4', '--dbcollate=utf8mb4_general_ci',
+]
+p = subprocess.Popen(cmd)
+try:
+    p.wait()
+except KeyboardInterrupt:
+    try:
+        p.terminate()
+    except OSError:
+        pass
+    p.wait()
+
+cmd = [
+    os.path.dirname(sys.argv[0]) + '/wp', 'core', 'install',
+    '--url=http://' + env.get('BASEHOST'),
+    '--title=Wordpress',
+    '--admin_email=dockerwest@example.com',
+    '--admin_user=admin', '--admin_password=DockerWest123!',
+    '--skip-email'
+]
+p = subprocess.Popen(cmd)
+try:
+    p.wait()
+except KeyboardInterrupt:
+    try:
+        p.terminate()
+    except OSError:
+        pass
+    p.wait()
